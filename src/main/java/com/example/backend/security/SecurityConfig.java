@@ -65,7 +65,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         // Allow local frontend during development. For production replace with a specific origin.
-        config.setAllowedOriginPatterns(List.of("http://localhost:*","http://localhost:5173","http://localhost:9090/springapp2", "http://127.0.0.1:*"));
+        config.setAllowedOriginPatterns(List.of("http://localhost:*","http://localhost:5173","http://localhost:9090/springapp2","http://localhost", "http://127.0.0.1:*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization", "Content-Type"));
