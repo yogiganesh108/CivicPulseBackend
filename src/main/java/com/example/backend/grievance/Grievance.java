@@ -49,6 +49,15 @@ public class Grievance {
 
     private String resolutionImageType;
 
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    private byte[] reopenImageData;
+
+    private String reopenImageType;
+
+    @Column(length = 2000)
+    private String reopenNote;
+
     private Instant resolvedAt;
 
     public Long getId() { return id; }
@@ -85,4 +94,10 @@ public class Grievance {
     public void setResolutionImageType(String resolutionImageType) { this.resolutionImageType = resolutionImageType; }
     public Instant getResolvedAt() { return resolvedAt; }
     public void setResolvedAt(Instant resolvedAt) { this.resolvedAt = resolvedAt; }
+    public byte[] getReopenImageData() { return reopenImageData; }
+    public void setReopenImageData(byte[] reopenImageData) { this.reopenImageData = reopenImageData; }
+    public String getReopenImageType() { return reopenImageType; }
+    public void setReopenImageType(String reopenImageType) { this.reopenImageType = reopenImageType; }
+    public String getReopenNote() { return reopenNote; }
+    public void setReopenNote(String reopenNote) { this.reopenNote = reopenNote; }
 }

@@ -19,10 +19,67 @@ public class ComplaintsController {
 
     private final GrievanceService grievanceService;
     private final UserRepository userRepository;
+    private final com.example.backend.grievance.FeedbackService feedbackService;
 
-    public ComplaintsController(GrievanceService grievanceService, UserRepository userRepository) {
+    public ComplaintsController(GrievanceService grievanceService, UserRepository userRepository, com.example.backend.grievance.FeedbackService feedbackService) {
         this.grievanceService = grievanceService;
         this.userRepository = userRepository;
+        this.feedbackService = feedbackService;
+    }
+
+    // Get single complaint by id (admin/officer/user may call depending on auth)
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getComplaint(@PathVariable Long id){
+        try{
+            Grievance g = grievanceService.findById(id).orElseThrow(() -> new RuntimeException("Grievance not found"));
+            Map<String,Object> m = new HashMap<>();
+            m.put("id", g.getId());
+            m.put("title", g.getTitle());
+            m.put("description", g.getDescription());
+            m.put("category", g.getCategory());
+            m.put("location", g.getLocation());
+            if(g.getImageData() != null){
+                String imageUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path("/api/grievances/")
+                        .path(String.valueOf(g.getId()))
+                        .path("/image")
+                        .toUriString();
+                m.put("imageUrl", imageUrl);
+            } else {
+                m.put("imageUrl", null);
+            }
+            m.put("status", g.getStatus() != null ? g.getStatus().name() : null);
+            m.put("userId", g.getUserId());
+            m.put("officerId", g.getOfficerId());
+            m.put("priority", g.getPriority());
+            m.put("deadline", g.getDeadline());
+            m.put("createdAt", g.getCreatedAt());
+            m.put("resolutionNote", g.getResolutionNote());
+            if(g.getResolutionImageData() != null){
+                String rurl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path("/api/grievances/")
+                        .path(String.valueOf(g.getId()))
+                        .path("/resolution/image")
+                        .toUriString();
+                m.put("resolutionImageUrl", rurl);
+            }
+            if(g.getReopenImageData() != null){
+                String reopenUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path("/api/grievances/")
+                        .path(String.valueOf(g.getId()))
+                        .path("/reopen/image")
+                        .toUriString();
+                m.put("reopenImageUrl", reopenUrl);
+            }
+            if(g.getReopenNote() != null) m.put("reopenNote", g.getReopenNote());
+            Double avg = feedbackService.getAverageRatingForGrievance(g.getId());
+            long count = feedbackService.getRatingCountForGrievance(g.getId());
+            m.put("averageRating", avg);
+            m.put("ratingCount", count);
+            return ResponseEntity.ok(m);
+        }catch(Exception ex){
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        }
     }
 
     // Admin: list all complaints (return mapped DTOs so frontend can consume imageUrl and other derived fields)
@@ -51,6 +108,19 @@ public class ComplaintsController {
             m.put("priority", g.getPriority());
             m.put("deadline", g.getDeadline());
             m.put("createdAt", g.getCreatedAt());
+            Double avg = feedbackService.getAverageRatingForGrievance(g.getId());
+            long count = feedbackService.getRatingCountForGrievance(g.getId());
+            m.put("averageRating", avg);
+            m.put("ratingCount", count);
+            if(g.getReopenImageData() != null){
+                String reopenUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path("/api/grievances/")
+                        .path(String.valueOf(g.getId()))
+                        .path("/reopen/image")
+                        .toUriString();
+                m.put("reopenImageUrl", reopenUrl);
+            }
+            if(g.getReopenNote() != null) m.put("reopenNote", g.getReopenNote());
             return m;
         }).toList();
     }
@@ -101,6 +171,10 @@ public class ComplaintsController {
             m.put("deadline", g.getDeadline());
             m.put("createdAt", g.getCreatedAt());
             m.put("resolutionNote", g.getResolutionNote());
+            Double avg = feedbackService.getAverageRatingForGrievance(g.getId());
+            long count = feedbackService.getRatingCountForGrievance(g.getId());
+            m.put("averageRating", avg);
+            m.put("ratingCount", count);
             if(g.getResolutionImageData() != null){
                 // Serve resolution images from the grievances controller (these paths are permitted by security config)
                 String url = ServletUriComponentsBuilder.fromCurrentContextPath()
@@ -140,6 +214,10 @@ public class ComplaintsController {
             m.put("deadline", g.getDeadline());
             m.put("createdAt", g.getCreatedAt());
             m.put("resolutionNote", g.getResolutionNote());
+            Double avg = feedbackService.getAverageRatingForGrievance(g.getId());
+            long count = feedbackService.getRatingCountForGrievance(g.getId());
+            m.put("averageRating", avg);
+            m.put("ratingCount", count);
             return m;
         }).toList();
     }
