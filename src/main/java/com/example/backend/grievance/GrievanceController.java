@@ -2,12 +2,15 @@ package com.example.backend.grievance;
 
 import com.example.backend.model.User;
 import com.example.backend.repository.UserRepository;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +20,8 @@ import java.util.Optional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
-import java.io.IOException;
-import org.springframework.security.core.Authentication;
+// import java.io.IOException;
+// import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/grievances")
@@ -68,6 +71,7 @@ public class GrievanceController {
     public ResponseEntity<?> submitGrievance(@RequestParam(required = false) String title,
                                              @RequestParam String description,
                                              @RequestParam String category,
+                                             @RequestParam(required = false) String subcategory,
                                              @RequestParam(required = false) String location,
                                              @RequestParam(required = false) MultipartFile image,
                                              Authentication authentication) throws IOException {
@@ -79,6 +83,7 @@ public class GrievanceController {
         g.setTitle(StringUtils.hasText(title) ? title : "");
         g.setDescription(description);
         g.setCategory(category);
+        g.setSubcategory(subcategory);
         g.setLocation(location);
         g.setUserId(user.getId());
         g.setStatus(Status.PENDING);
@@ -104,6 +109,7 @@ public class GrievanceController {
         "title", saved.getTitle(),
         "description", saved.getDescription(),
         "category", saved.getCategory(),
+        "subcategory", saved.getSubcategory(),
         "location", saved.getLocation(),
         "imageUrl", imageUrl,
         "status", saved.getStatus(),
@@ -122,6 +128,7 @@ public class GrievanceController {
             m.put("title", g.getTitle());
             m.put("description", g.getDescription());
             m.put("category", g.getCategory());
+            m.put("subcategory", g.getSubcategory());
             m.put("location", g.getLocation());
             if(g.getImageData() != null){
                 String url = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath()
@@ -222,5 +229,61 @@ public class GrievanceController {
         }catch(Exception ex){
             return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         }
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<?> exportAll(Authentication authentication) {
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        if(!isAdmin){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Admins only"));
+        }
+
+        List<Grievance> grievances = service.findAll();
+        byte[] bytes = buildWorkbook(grievances);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=grievances.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(bytes);
+    }
+
+    private byte[] buildWorkbook(List<Grievance> grievances) {
+        try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            var sheet = workbook.createSheet("Complaints");
+            String[] headers = {"ID", "Title", "Category", "Subcategory", "Status", "Priority", "Location", "OfficerId", "UserId", "Deadline", "CreatedAt"};
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                headerRow.createCell(i).setCellValue(headers[i]);
+            }
+
+            int rowIdx = 1;
+            for (Grievance g : grievances) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(toText(g.getId()));
+                row.createCell(1).setCellValue(toText(g.getTitle()));
+                row.createCell(2).setCellValue(toText(g.getCategory()));
+                row.createCell(3).setCellValue(toText(g.getSubcategory()));
+                row.createCell(4).setCellValue(g.getStatus() != null ? g.getStatus().name() : "");
+                row.createCell(5).setCellValue(toText(g.getPriority()));
+                row.createCell(6).setCellValue(toText(g.getLocation()));
+                row.createCell(7).setCellValue(toText(g.getOfficerId()));
+                row.createCell(8).setCellValue(toText(g.getUserId()));
+                row.createCell(9).setCellValue(g.getDeadline() != null ? g.getDeadline().toString() : "");
+                row.createCell(10).setCellValue(g.getCreatedAt() != null ? g.getCreatedAt().toString() : "");
+            }
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(out);
+            return out.toByteArray();
+        } catch (IOException ex) {
+            throw new RuntimeException("Failed to generate export", ex);
+        }
+    }
+
+    private String toText(Object value) {
+        return value == null ? "" : value.toString();
     }
 }

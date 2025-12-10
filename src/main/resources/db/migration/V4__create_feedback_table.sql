@@ -1,12 +1,12 @@
 -- Create feedback table
-CREATE TABLE IF NOT EXISTS feedback (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  grievance_id BIGINT NOT NULL,
-  user_id BIGINT NOT NULL,
-  rating INT NOT NULL,
-  comments TEXT,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  reopened BOOLEAN DEFAULT FALSE,
-  INDEX (grievance_id),
-  INDEX (user_id)
-);
+-- CREATE TABLE IF NOT EXISTS feedback (
+  -- id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  -- grievance_id BIGINT NOT NULL,
+  -- user_id BIGINT NOT NULL,
+  -- rating INT NOT NULL,
+  -- comments TEXT,
+  -- created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  -- reopened BOOLEAN DEFAULT FALSE,
+  -- INDEX (grievance_id),
+  -- INDEX (user_id)
+-- );

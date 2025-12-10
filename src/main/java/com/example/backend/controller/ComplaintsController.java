@@ -37,6 +37,7 @@ public class ComplaintsController {
             m.put("title", g.getTitle());
             m.put("description", g.getDescription());
             m.put("category", g.getCategory());
+            m.put("subcategory", g.getSubcategory());
             m.put("location", g.getLocation());
             if(g.getImageData() != null){
                 String imageUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath()
@@ -92,6 +93,7 @@ public class ComplaintsController {
             m.put("title", g.getTitle());
             m.put("description", g.getDescription());
             m.put("category", g.getCategory());
+            m.put("subcategory", g.getSubcategory());
             m.put("location", g.getLocation());
             String imageUrl = null;
             if(g.getImageData() != null){
@@ -156,6 +158,7 @@ public class ComplaintsController {
             m.put("title", g.getTitle());
             m.put("description", g.getDescription());
             m.put("category", g.getCategory());
+            m.put("subcategory", g.getSubcategory());
             m.put("location", g.getLocation());
             String imageUrl = null;
             if(g.getImageData() != null){
@@ -198,6 +201,7 @@ public class ComplaintsController {
             m.put("title", g.getTitle());
             m.put("description", g.getDescription());
             m.put("category", g.getCategory());
+            m.put("subcategory", g.getSubcategory());
             m.put("location", g.getLocation());
             String imageUrl = null;
             if(g.getImageData() != null){

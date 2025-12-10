@@ -54,6 +54,7 @@ public class SecurityConfig {
                 .requestMatchers("/error", "/error/**", "/debug/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/grievances/**").permitAll()
+                .requestMatchers("/api/simple/**").permitAll()
                 
                 .anyRequest().authenticated()
             )

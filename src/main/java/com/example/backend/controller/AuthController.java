@@ -2,7 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.AuthRequest;
 import com.example.backend.dto.RegistrationRequest;
-import com.example.backend.dto.AuthResponse;
+// import com.example.backend.dto.AuthResponse;
 import com.example.backend.model.Role;
 import com.example.backend.model.User;
 import com.example.backend.security.JwtUtils;

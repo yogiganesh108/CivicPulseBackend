@@ -61,6 +61,7 @@ public class Grievance {
     private Instant resolvedAt;
 
     public Long getId() { return id; }
+    private String subcategory;
     public void setId(Long id) { this.id = id; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -100,4 +101,12 @@ public class Grievance {
     public void setReopenImageType(String reopenImageType) { this.reopenImageType = reopenImageType; }
     public String getReopenNote() { return reopenNote; }
     public void setReopenNote(String reopenNote) { this.reopenNote = reopenNote; }
+    public String getSubcategory() {
+        return subcategory;
+    }
+    
+    public void setSubcategory(String subcategory) {
+        this.subcategory = subcategory;
+    }
 }
+

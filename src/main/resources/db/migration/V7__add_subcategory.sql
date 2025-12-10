@@ -1,0 +1,2 @@
+-- Add subcategory column for grievances
+-- ALTER TABLE grievances ADD COLUMN subcategory VARCHAR(255);
