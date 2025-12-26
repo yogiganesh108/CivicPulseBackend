@@ -33,50 +33,62 @@ public class SecurityConfig {
         this.jwtUtils = jwtUtils;
     }
 
+    // 🔐 Password Encoder
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // 🔑 Authentication Manager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
+    // 🔒 Security Filter Chain
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, UserDetailsService uds) throws Exception {
         JwtFilter jwtFilter = new JwtFilter(jwtUtils);
-        http.cors(Customizer.withDefaults())
+
+        http
+            .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                // allow error handling endpoint (Spring Boot) and our debug endpoints
                 .requestMatchers("/error", "/error/**", "/debug/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/grievances/**").permitAll()
                 .requestMatchers("/api/simple/**").permitAll()
-                
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
+    // 🌍 CORS configuration
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Allow local frontend during development. For production replace with a specific origin.
-        config.setAllowedOriginPatterns(List.of("http://localhost:*","http://localhost:5173","http://localhost:9090/springapp2","http://localhost","http://localhost:8083", "http://127.0.0.1:*"));
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "http://localhost:5173",
+                "http://localhost:9090/springapp2",
+                "http://localhost",
+                "http://localhost:8083",
+                "http://127.0.0.1:*"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
 
-    // Additional global CorsFilter - ensures CORS headers are applied for all requests (dev only)
+    // 🌍 Global CORS filter (dev only)
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -89,7 +101,6 @@ public class SecurityConfig {
         return new CorsFilter(source);
     }
 
-    // Register the CorsFilter with highest precedence so it handles preflight before Spring Security
     @Bean
     public FilterRegistrationBean<CorsFilter> corsFilterRegistration(CorsFilter corsFilter) {
         FilterRegistrationBean<CorsFilter> registration = new FilterRegistrationBean<>(corsFilter);
@@ -98,11 +109,12 @@ public class SecurityConfig {
         return registration;
     }
 
+    // ✅ FIXED AuthenticationProvider (IMPORTANT)
     @Bean
     public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService) {
-        // Use the constructor that accepts UserDetailsService to avoid deprecated setter
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);   // ✅ correct
+        provider.setPasswordEncoder(passwordEncoder());       // ✅ correct
         return provider;
     }
 }
